@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://forge.example/schemas/agentic_sidecar_v1.json",
+  "title": "forge.agentic/1 sidecar",
+  "type": "object",
+  "required": ["schema", "geometry_hash", "feature_dag", "topology"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "forge.agentic/1" },
+    "geometry_hash": { "$ref": "#/$defs/sha256" },
+    "feature_dag": {
+      "type": "object", "required": ["root_hash", "nodes"],
+      "properties": {
+        "root_hash": { "$ref": "#/$defs/sha256" },
+        "nodes": { "type": "array", "items": {
+          "type": "object", "required": ["index", "id", "op", "hash"],
+          "properties": {
+            "index": { "type": "integer", "minimum": 0 },
+            "id": { "type": "string", "minLength": 1 },
+            "op": { "enum": ["Extrude", "Revolve", "Fillet", "Chamfer", "Cut-Extrude", "Hole", "Pattern"] },
+            "parents": { "type": "array", "items": { "type": "string" } },
+            "refs": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } },
+            "params": { "type": "object" },
+            "hash": { "$ref": "#/$defs/sha256" }
+          } } }
+      }
+    },
+    "topology": {
+      "type": "object", "required": ["vertices", "edges", "faces", "shells", "genus"],
+      "properties": {
+        "vertices": { "type": "integer", "minimum": 0 },
+        "edges": { "type": "integer", "minimum": 0 },
+        "faces": { "type": "integer", "minimum": 0 },
+        "shells": { "type": "integer", "minimum": 0 },
+        "genus": { "type": "integer", "minimum": 0 },
+        "open_shells": { "type": "integer", "minimum": 0 },
+        "self_intersecting_faces": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "datums": { "type": "array", "items": { "$ref": "#/$defs/datum" } },
+    "dfm": { "$ref": "#/$defs/dfm" },
+    "assembly": { "$ref": "#/$defs/assembly" },
+    "fea": { "$ref": "#/$defs/fea" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+    "datum": {
+      "type": "object", "required": ["name", "nominal_bbox", "measured_bbox"],
+      "properties": {
+        "name": { "type": "string" },
+        "nominal_bbox": { "$ref": "#/$defs/vec3" },
+        "measured_bbox": { "$ref": "#/$defs/vec3" },
+        "nominal_axis": { "type": "object", "required": ["origin", "direction"], "properties": { "origin": { "$ref": "#/$defs/vec3" }, "direction": { "$ref": "#/$defs/vec3" } } },
+        "measured_axis_origin": { "$ref": "#/$defs/vec3" }
+      }
+    },
+    "dfm": {
+      "type": "object",
+      "properties": {
+        "min_wall_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "inaccessible_faces": { "type": "integer", "minimum": 0 },
+        "holes": { "type": "array", "items": { "type": "object", "required": ["id", "diameter_mm", "depth_mm"], "properties": { "id": { "type": "string" }, "diameter_mm": { "type": "number", "exclusiveMinimum": 0 }, "depth_mm": { "type": "number", "minimum": 0 } } } },
+        "walls": { "type": "array", "items": { "type": "object", "required": ["id", "thickness_mm"], "properties": { "id": { "type": "string" }, "thickness_mm": { "type": "number", "exclusiveMinimum": 0 } } } }
+      }
+    },
+    "assembly": {
+      "type": "object",
+      "properties": {
+        "bodies": { "type": "array", "items": { "type": "string" } },
+        "mates": { "type": "array", "items": { "type": "object", "required": ["id", "bodies", "dof_removed"], "properties": { "id": { "type": "string" }, "type": { "type": "string" }, "bodies": { "type": "array", "items": { "type": "string" }, "minItems": 2, "maxItems": 2 }, "dof_removed": { "type": "integer", "minimum": 0, "maximum": 6 } } } }
+      }
+    },
+    "fea": {
+      "type": "object", "required": ["max_von_mises_mpa", "yield_strength_mpa", "converged"],
+      "properties": {
+        "max_von_mises_mpa": { "type": "number", "minimum": 0 },
+        "yield_strength_mpa": { "type": "number", "exclusiveMinimum": 0 },
+        "converged": { "type": "boolean" },
+        "mesh_elements": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
